@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>セルフコーチング</title>
+    <link rel="stylesheet" href="./style.css">
+</head>
+
+<body>
+    <div id= "chatbot">
+    
+		<div id= "chatbot-header">
+			<div id= "chatbot-logo">セルフコーチングチャット</div>
+		</div>
+    
+		<div id= "chatbot-body">
+            <div class="frame">
+                <!-- <div class="user-text"></div>
+                <div class="bot-text"></div> -->
+                <div class="text"></div>
+            </div>  
+		</div>
+    
+		<!--入力場所，送信ボタン-->
+		<form onsubmit= "return false">
+			<div id= "chatbot-footer">
+				<!-- <input type= "file" id="chatbot-img" class= "browser-default"> -->
+                <input type= "text" id="chatbot-text" class= "browser-default" placeholder="テキストを入力">
+				<input type= "submit" value= "あなた" id= "chatbot-submit-user">
+                <input type= "submit" value= "コーチ" id= "chatbot-submit-bot">
+			</div>
+		</form>
+	</div>
+
+    <div></div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+<script type="module">
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.1.0/firebase-app.js";
+import { getDatabase, ref, push, set, onChildAdded, remove, onChildRemoved } 
+from "https://www.gstatic.com/firebasejs/9.1.0/firebase-database.js";
+// import { getStorage, ref as sRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.1.0/firebase-storage.js";
+// Your web app's Firebase configuration
+const firebaseConfig = {
+    apiKey: "AIzaSyA7VVIUN8_p7huy45nZr_-Yt5R2hsTmY-M",
+    authDomain: "g-s-academy-185cb.firebaseapp.com",
+    databaseURL: "https://g-s-academy-185cb-default-rtdb.firebaseio.com",
+    projectId: "g-s-academy-185cb",
+    storageBucket: "g-s-academy-185cb.appspot.com",
+    messagingSenderId: "307832057097",
+    appId: "1:307832057097:web:754352491126261ff3b7d8"
+};
+const app = initializeApp(firebaseConfig);
+const db  = getDatabase(app); //RealtimeDBに接続
+const dbRef = ref(db,"chat"); //RealtimeDB内の"chat"を使う
+
+// メッセージを取得し、表示する関数
+function displayMessage(id, text, sender) {
+    let divClass = sender === 'user' ? 'user-text' : 'bot-text';
+    let messageHtml = '<div class="' + divClass + '">' +
+                        '<p>' + text + '</p>' +
+                      '</div>';
+    $(".frame").append(messageHtml);
+}
+
+// データベースからメッセージをリアルタイムで取得する
+onChildAdded(dbRef, (data) => {
+    const msg = data.val();
+    if (msg && msg.text && msg.sender) {
+        displayMessage(data.key, msg.text, msg.sender);
+    }
+});
+
+$("#chatbot-submit-user").on('click', ()=>{
+    const msg = $('#chatbot-text').val();
+    const messageData = {
+        text: msg,
+        sender: 'user'
+    };
+    const newPostRef = push(dbRef);
+    set(newPostRef, messageData);
+    $('#chatbot-text').val(''); // テキストボックスをクリア
+});
+
+$("#chatbot-submit-bot").on('click', ()=>{
+    const msg = $('#chatbot-text').val();
+    const messageData = {
+        text: msg,
+        sender: 'bot'
+    };
+    const newPostRef = push(dbRef);
+    set(newPostRef, messageData);
+    $('#chatbot-text').val(''); // テキストボックスをクリア
+});
+
+</script>
+</body>
